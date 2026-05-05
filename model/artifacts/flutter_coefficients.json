@@ -1,0 +1,44 @@
+{
+  "feature_order": [
+    "Pregnancies",
+    "Glucose",
+    "BloodPressure",
+    "SkinThickness",
+    "Insulin",
+    "BMI",
+    "DiabetesPedigreeFunction",
+    "Age"
+  ],
+  "coef": [
+    1.2076,
+    2.9566,
+    -0.2021,
+    0.0236,
+    0.1354,
+    1.8257,
+    0.8627,
+    0.2385
+  ],
+  "intercept": -2.5327,
+  "mean": [
+    3.0,
+    117.0,
+    72.0,
+    29.0,
+    125.0,
+    32.3,
+    0.3725,
+    29.0
+  ],
+  "scale": [
+    3.3674,
+    30.4185,
+    12.0888,
+    8.7855,
+    86.3268,
+    6.8707,
+    0.3311,
+    11.7526
+  ],
+  "champion_model": "SVM (RBF)"
+}

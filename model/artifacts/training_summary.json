@@ -1,0 +1,26 @@
+{
+  "best_model": "SVM (RBF)",
+  "selection_metric": "accuracy",
+  "test_metrics": {
+    "accuracy": 0.7402597402597403,
+    "precision": 0.6521739130434783,
+    "recall": 0.5555555555555556,
+    "f1": 0.6,
+    "roc_auc": 0.7963888888888889,
+    "cv_accuracy_mean": 0.7538663950428657,
+    "cv_accuracy_std": 0.021177727660236748
+  },
+  "smote_used": false,
+  "xgboost_used": false,
+  "shap_used": true,
+  "feature_columns": [
+    "Pregnancies",
+    "Glucose",
+    "BloodPressure",
+    "SkinThickness",
+    "Insulin",
+    "BMI",
+    "DiabetesPedigreeFunction",
+    "Age"
+  ]
+}

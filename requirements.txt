@@ -1,0 +1,16 @@
+# Core ML
+scikit-learn
+numpy
+pandas
+
+# ML additions
+xgboost
+imbalanced-learn
+shap
+
+# API
+flask
+flask-cors
+
+# Render deployment (required)
+gunicorn
