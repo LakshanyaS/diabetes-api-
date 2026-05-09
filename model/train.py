@@ -230,7 +230,7 @@ def train_all_models(df: pd.DataFrame):
 
 
 # ── 3. SHAP values ─────────────────────────────────────────────────────────
-def compute_shap(champion, X_test: pd.DataFrame, feature_cols: list,
+'''def compute_shap(champion, X_test: pd.DataFrame, feature_cols: list,
                  artifacts_dir: Path) -> dict:
     """
     Compute SHAP values and save:
@@ -344,7 +344,82 @@ def compute_shap(champion, X_test: pd.DataFrame, feature_cols: list,
 
     return mean_abs
 
+'''
 
+# Replace the compute_shap() function in your model/train.py with this version
+# It saves feature_means and feature_stds into shap_values.json
+# so the server can approximate per-patient SHAP without the shap library
+
+def compute_shap(champion, X_test, feature_cols: list,
+                 artifacts_dir, df_full=None):
+    """
+    Compute SHAP values ONCE during training on your laptop.
+    Saves everything to shap_values.json — server just reads this file.
+    No shap library needed on the server.
+    """
+    if not _SHAP:
+        print("   [skip] shap not installed — pip install shap")
+        return {}
+
+    print("   Computing SHAP values (this runs only during training)...")
+
+    try:
+        pre = champion.named_steps["pre"]
+        X_transformed = pre.transform(X_test)
+    except Exception:
+        X_transformed = X_test.values
+
+    try:
+        clf = champion.named_steps["clf"]
+    except Exception:
+        clf = champion
+
+    try:
+        explainer = shap.TreeExplainer(clf)
+        shap_vals = explainer.shap_values(X_transformed)
+        if isinstance(shap_vals, list):
+            shap_vals = shap_vals[1]
+    except Exception:
+        try:
+            explainer = shap.LinearExplainer(clf, X_transformed)
+            shap_vals = explainer.shap_values(X_transformed)
+        except Exception as e:
+            print(f"   [skip] SHAP failed: {e}")
+            return {}
+
+    mean_abs = {
+        feat: float(np.abs(shap_vals[:, i]).mean())
+        for i, feat in enumerate(feature_cols)
+    }
+
+    # Save dataset means and stds so server can approximate per-patient SHAP
+    feature_means = {}
+    feature_stds  = {}
+    if df_full is not None:
+        for feat in feature_cols:
+            if feat in df_full.columns:
+                feature_means[feat] = float(df_full[feat].median())
+                feature_stds[feat]  = float(df_full[feat].std())
+
+    # Save full SHAP data to JSON
+    shap_json = {
+        "feature_names":  feature_cols,
+        "mean_abs_shap":  mean_abs,
+        "feature_means":  feature_means,   # NEW — for server approximation
+        "feature_stds":   feature_stds,    # NEW — for server approximation
+        "samples": [
+            {feat: float(shap_vals[row, i])
+             for i, feat in enumerate(feature_cols)}
+            for row in range(min(100, len(shap_vals)))
+        ],
+    }
+
+    out_path = artifacts_dir / "shap_values.json"
+    with open(out_path, "w") as f:
+        json.dump(shap_json, f, indent=2)
+    print(f"   Saved shap_values.json → {out_path}")
+
+    return mean_abs
 # ── 4. Save plots ──────────────────────────────────────────────────────────
 def save_plots(results, champion_name, y_test, feature_importance,
                artifacts_dir: Path, feature_cols: list):
@@ -512,7 +587,7 @@ def train_and_save(model_path: Path | None = None,
                feature_importance, artifacts_dir, feature_cols)
 
     # ── SHAP ───────────────────────────────────────────────────────────────
-    compute_shap(champion, X_test, feature_cols, artifacts_dir)
+    compute_shap(champion, X_test, feature_cols, artifacts_dir, df_full=df)
 
     # ── Flutter coefficients ───────────────────────────────────────────────
     flutter_coefs = print_flutter_coefficients(

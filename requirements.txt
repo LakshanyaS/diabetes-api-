@@ -6,7 +6,6 @@ pandas
 # ML additions
 xgboost
 imbalanced-learn
-shap
 
 # API
 flask
