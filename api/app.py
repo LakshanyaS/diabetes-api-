@@ -78,6 +78,7 @@ def _startup():
     print("Server ready ✅")
 
 
+_startup()
 # ── GET /health ─────────────────────────────────────────────────────────────
 @app.route("/health", methods=["GET"])
 def health():
@@ -186,6 +187,5 @@ def shap_summary():
 
 
 if __name__ == "__main__":
-    _startup()
     print(f"Running on http://localhost:{config.API_PORT}")
     app.run(host=config.API_HOST, port=config.API_PORT, debug=config.API_DEBUG)
